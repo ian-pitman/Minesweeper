@@ -7,11 +7,11 @@ public class Tile {
     private boolean isFlagged;
     private boolean hasMine;
     
-    public Tile(boolean shown, int number, boolean isFlagged, boolean isMine) {
+    public Tile(boolean shown, int number, boolean isFlagged, boolean hasMine) {
         this.shown = shown;
         this.number = number;
         this.isFlagged = isFlagged;
-        this.hasMine = isMine;
+        this.hasMine = hasMine;
     }
 
     public boolean isShown() {
@@ -44,5 +44,17 @@ public class Tile {
 
     public void setHasMine(boolean hasMine) {
         this.hasMine = hasMine;
+    }
+    
+    public String booleanCode(boolean foo) {
+        return foo ? "t" : "f";
+    }
+    
+    @Override
+    public String toString() {
+        return booleanCode(this.isShown()) + " " + 
+                this.getNumber() + " " + 
+                booleanCode(this.isFlagged()) + " " + 
+                booleanCode(this.hasMine());
     }
 }
