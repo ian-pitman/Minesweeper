@@ -1,6 +1,7 @@
 package minesweeper;
 
 import java.util.Random;
+import java.util.StringJoiner;
 
 public class MinesweeperModel implements MSModel {
 
@@ -28,6 +29,11 @@ public class MinesweeperModel implements MSModel {
             }
             
             grid[a][b] = new Tile(false, 0, false, true);
+        }
+        for (int row = 0; row < this.getNumRows(); row++) {
+            for (int col = 0; col < this.getNumCols(); col++) {
+                grid[row][col].setNumber(countSurroundingMines(row, col));
+            }
         }
     }
 
@@ -97,7 +103,17 @@ public class MinesweeperModel implements MSModel {
 
     @Override
     public int countSurroundingMines(int row, int col) {
-        return 0;
+        int result = 0;
+        for (int r = ((row > 0) ? row - 1 : row); r <= ((row < this.getNumRows() - 1) ? row + 1 : row); r++) {
+            for (int c = ((col > 0) ? col - 1 : col); c <= ((col < this.getNumCols() - 1) ? col + 1 : col); c++) {
+                if (r != row || c != col) {
+                    if (grid[r][c].hasMine()) {
+                        result++;
+                    }
+                }
+            }
+        }
+        return result;
     }
     
     @Override
@@ -110,6 +126,122 @@ public class MinesweeperModel implements MSModel {
             output += "\n";
         }
         return output;
+    }
+    
+    @Override
+    public void reveal(int row, int col) {
+        if (row >= 0 && col >= 0 && row < this.getNumRows() && col < this.getNumCols()) {
+            if (isShown(row, col)) {
+
+            } else if (this.getNumber(row, col) == 0) {
+                setShown(row, col, true);
+            } else {
+                reveal(row, col - 1);
+                reveal(row + 1, col);
+                reveal(row, col + 1);
+                reveal(row - 1, col);
+            }
+        }
+    }
+    
+    public void regen(int row, int col) {
+        Random r = new Random();
+        int a = r.nextInt(this.getNumRows());
+        int b = r.nextInt(this.getNumCols());
+        
+        while (hasMine(row, col)) {
+            setMine(row, col, false);
+            if (!hasMine(a, b)) {
+                setMine(a, b, true);
+            } else {
+                a = r.nextInt(this.getNumRows());
+                b = r.nextInt(this.getNumCols());
+            }
+        }
+        
+    }
+    
+    public void printUpperBoard() {
+        System.out.print("    ");
+        for (int col = 0; col < this.getNumRows(); col++) {
+            System.out.print(col + "   ");
+        }
+        System.out.println();
+        String split;
+        StringJoiner splitJoiner = new StringJoiner("+", "|", "|");
+        for (int col = 0; col < this.getNumCols(); col++) {
+            splitJoiner.add(String.format("%3s", "").replace(" ", "-"));
+        }
+        split = "  " + splitJoiner.toString();
+        for (int row = 0; row < this.getNumRows(); row++) {
+            StringJoiner sj = new StringJoiner(" | ", "| ", " |");
+            for (int col = 0; col < this.getNumCols(); col++) {
+                if (grid[row][col].isShown()) {
+                    if (grid[row][col].isFlagged()) {
+                        sj.add(String.format("%1s", "!"));
+                    } else if (grid[row][col].hasMine()) {
+                        sj.add(String.format("%1s", "*"));
+                    } else if (grid[row][col].getNumber() > 0) {
+                        sj.add(String.format("%01d", grid[row][col].getNumber()));
+                    } else {
+                        sj.add(String.format("%1s", " "));
+                    }
+                } else {
+                    if (grid[row][col].isFlagged()) {
+                        sj.add(String.format("%1s", "!"));
+                    } else {
+                        sj.add(String.format("%1s", "X"));
+                    }
+                }
+            }
+            System.out.println(split);
+            System.out.println(row + " " + sj.toString());
+        }
+        System.out.println(split);
+    }
+    
+    public void printLowerBoard() {
+        System.out.print("    ");
+        for (int col = 0; col < this.getNumRows(); col++) {
+            System.out.print(col + "   ");
+        }
+        System.out.println();
+        String split;
+        StringJoiner splitJoiner = new StringJoiner("+", "|", "|");
+        for (int col = 0; col < this.getNumCols(); col++) {
+            splitJoiner.add(String.format("%3s", "").replace(" ", "-"));
+        }
+        split = "  " + splitJoiner.toString();
+        for (int row = 0; row < this.getNumRows(); row++) {
+            StringJoiner sj = new StringJoiner(" | ", "| ", " |");
+            for (int col = 0; col < this.getNumCols(); col++) {
+                if (grid[row][col].isFlagged()) {
+                    sj.add(String.format("%1s", "!"));
+                } else if (grid[row][col].hasMine()) {
+                    sj.add(String.format("%1s", "*"));
+                } else if (grid[row][col].getNumber() > 0) {
+                    sj.add(String.format("%01d", grid[row][col].getNumber()));
+                } else {
+                    sj.add(String.format("%1s", " "));
+                }
+            }
+            System.out.println(split);
+            System.out.println(row + " " + sj.toString());
+        }
+        System.out.println(split);
+    }
+
+    @Override
+    public int numMines() {
+        int result = 0;
+        for (int r = 0; r < this.getNumRows(); r++) {
+            for (int c = 0; c < this.getNumCols(); c++) {
+                if (grid[r][c].hasMine()) {
+                    result++;
+                }
+            }
+        }
+        return result;
     }
     
 }

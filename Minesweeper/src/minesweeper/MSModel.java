@@ -14,4 +14,6 @@ public interface MSModel {
     public boolean isFlagged(int row, int col);
     public boolean hasMine(int row, int col);
     public int countSurroundingMines(int row, int col);
+    public int numMines();
+    public void reveal(int row, int col);
 }
