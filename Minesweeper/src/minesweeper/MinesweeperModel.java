@@ -3,6 +3,25 @@ package minesweeper;
 import java.util.Random;
 import java.util.StringJoiner;
 
+/** RESUBMIT **/
+
+/**
+ * Name: Ian Pitman
+ * Date: 3/20/17
+ * Period: 4
+ * 
+ * Time Spent: 3.5 hours.
+ * 
+ * Reflection: This lab was a challenging yet productive addition to the JavaFX
+ * unit. I liked that there was less guidance so that a lot of my code was my
+ * own. Even though I had to rely on my previous LifeGUI code sometimes, I was
+ * able to mostly solve everything on my own. Danny helped me solve my recursive
+ * algorithm, which would go into stack overflow all the time because it assumed
+ * that the tile it was called on was not already revealed. A possible addition
+ * to printUpper and printLowerBoard() is to use the extended ASCII codes
+ * instead of normal symbols to make the console version more "graphical".
+ */
+
 public class MinesweeperModel implements MSModel {
 
     private Tile[][] grid;
@@ -130,16 +149,22 @@ public class MinesweeperModel implements MSModel {
     
     @Override
     public void reveal(int row, int col) {
-        if (row >= 0 && col >= 0 && row < this.getNumRows() && col < this.getNumCols()) {
-            if (isShown(row, col)) {
-
-            } else if (this.getNumber(row, col) == 0) {
-                setShown(row, col, true);
-            } else {
+        System.out.println("Revealed (" + row + ", " + col + ")");
+        System.out.println(this.getNumRows());
+        System.out.println(this.getNumCols());
+        System.out.println(isShown(row, col));
+        if (row >= 0 && col >= 0 && row < this.getNumRows() && col < this.getNumCols() && !isShown(row, col)) {
+            System.out.println("Revealed (" + row + ", " + col + ")");
+            setShown(row, col, true);
+            if (getNumber(row, col) == 0) {
                 reveal(row, col - 1);
+                reveal(row + 1, col - 1);
                 reveal(row + 1, col);
+                reveal(row + 1, col + 1);
                 reveal(row, col + 1);
+                reveal(row - 1, col + 1);
                 reveal(row - 1, col);
+                reveal(row - 1, col - 1);
             }
         }
     }
@@ -156,6 +181,12 @@ public class MinesweeperModel implements MSModel {
             } else {
                 a = r.nextInt(this.getNumRows());
                 b = r.nextInt(this.getNumCols());
+            }
+        }
+        
+        for (int j = 0; j < this.getNumRows(); j++) {
+            for (int k = 0; k < this.getNumCols(); k++) {
+                grid[j][k].setNumber(countSurroundingMines(j, k));
             }
         }
         

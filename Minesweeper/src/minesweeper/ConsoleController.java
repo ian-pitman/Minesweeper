@@ -59,10 +59,14 @@ public class ConsoleController {
             }
             switch (input) {
                 case "f":
-                    ctrl.getModel().setFlagged(row, col, !ctrl.getModel().isFlagged(row, col));
-                    if (ctrl.getModel().hasMine(row, col)) {
+                    if (ctrl.getModel().hasMine(row, col) && !ctrl.getModel().isFlagged(row, col)) {
                         minesLeft--;
-                    }   break;
+                    }
+                    if (ctrl.getModel().hasMine(row, col) && ctrl.getModel().isFlagged(row, col)) {
+                        minesLeft++;
+                    }
+                    ctrl.getModel().setFlagged(row, col, !ctrl.getModel().isFlagged(row, col));
+                    break;
                 case "r":
                     if (first) {
                         ctrl.getModel().regen(row, col);
