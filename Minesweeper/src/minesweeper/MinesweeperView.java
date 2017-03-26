@@ -45,6 +45,7 @@ public class MinesweeperView extends Application {
     private GridPane gridContainer;
     private ImageView[][] imageGrid;
     private MinesweeperModel model;
+    private boolean first;
     
     private final Image blank = new Image("images\\blank.gif");
     private final Image flag = new Image("images\\bomb_flagged.gif");
@@ -101,6 +102,8 @@ public class MinesweeperView extends Application {
         root.setCenter(gridContainer);
         Scene scene = new Scene(root, 800, 600);
         
+        first = true;
+        
         primaryStage.setTitle("Minesweeper GUI");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -123,7 +126,7 @@ public class MinesweeperView extends Application {
                         temp = bomb_death;
                     }
                 }
-                imageGrid[row][col] = new ImageView(temp);
+                imageGrid[col][row] = new ImageView(temp);
             }
         }
     }
@@ -151,37 +154,50 @@ public class MinesweeperView extends Application {
 
         @Override
         public void handle(MouseEvent e) {
-            int rowAt = (int)(e.getX() - 272) / 32;
-            int colAt = (int)(e.getY() - 137) / 32;
-
-            System.out.println("( " + e.getX() + ", " + e.getY() + " )");
+            int rowAt = (int)(e.getY() - 137) / 32;
+            int colAt = (int)(e.getX() - 272) / 32;
+            
+            //System.out.println("( " + e.getX() + ", " + e.getY() + " )");
             if (e.getButton().equals(MouseButton.PRIMARY)) {
                 model.reveal(rowAt, colAt);
+                if (first && model.hasMine(rowAt, colAt)) {
+                    model.regen(rowAt, colAt);
+                    first = false;
+                    return;
+                }
                 if (model.hasMine(rowAt, colAt)) {
                     System.out.println("Game Over.");
                     model.setShown(rowAt, colAt, true);
-                    Alert alert = new Alert(AlertType.INFORMATION);
-                    alert.setTitle("Game Over!");
-                    alert.setHeaderText("You clicked on a mine.");
-                    alert.setContentText("Click 'OK' to continue.");
-                    alert.showAndWait();
+                    updateImageView();
+                    updateGridContainer();
+                    gameOverAlert();
                     model = new MinesweeperModel(8, 8, 10);
                     addListeners();
                     updateImageView();
                     updateGridContainer();
+                    first = false;
                 }
-                System.out.println("Left clicked (" + rowAt + ", " + colAt + ")");
+                
+                //System.out.println("Left clicked (" + rowAt + ", " + colAt + ")");
             }
             if (e.getButton().equals(MouseButton.SECONDARY)) {
                 model.setFlagged(rowAt, colAt, !model.isFlagged(rowAt, colAt));
-                System.out.println("Right clicked (" + rowAt + ", " + colAt + ")");
+                //System.out.println("Right clicked (" + rowAt + ", " + colAt + ")");
             }
             updateImageView();
             updateGridContainer();
+            first = false;
         }
         
     }
     
+    public void gameOverAlert() {
+        Alert alert = new Alert(AlertType.INFORMATION);
+        alert.setTitle("Game Over!");
+        alert.setHeaderText("You clicked on a mine.");
+        alert.setContentText("Click 'OK' to continue.");
+        alert.showAndWait();
+    }
     
     public static void main(String[] args) {
         launch(args);
