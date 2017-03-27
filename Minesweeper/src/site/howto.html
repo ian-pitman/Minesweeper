@@ -11,6 +11,15 @@
 	        text-align: center;
             vertical-align: middle;
         }
+        img {
+            max-width: 60%;
+            max-height: 60%;
+            padding: 25px;
+        }
+        figure {
+            display: inline-grid;
+            vertical-align: middle;
+        }
     </style>
 </head>
     
@@ -22,9 +31,22 @@
        surrounsd the tile. Your job is to logically deduce where all the mines are and flag them.<br/></p>
     <h2>Controls</h2>
     <p>Left Click a tile to reveal it. Revealing a mine makes you lose.<br/>
-       Right Click a tile to flag/unflag it. Flagging all of the mines makes you win.<br/>
+       Right Click a tile to flag/unflag it. Flagging all of the mines makes you win.<br/><br/>
     </p>
-    
+    <div id="images">
+        <figure>
+            <img src="images/screenshot_1.png" alt="Screenshot of Game">
+            <figcaption>Revealed cells.</figcaption>
+        </figure>
+        <figure>
+            <img src="images/screenshot_2.png" alt="Screenshot of Game">
+            <figcaption>Marked flags.</figcaption>
+        </figure>
+        <figure>
+            <img src="images/screenshot_3.png" alt="Screenshot of Game">
+            <figcaption>Game won sequence.</figcaption>
+        </figure>
+    </div>
 </body>
 
 </html>

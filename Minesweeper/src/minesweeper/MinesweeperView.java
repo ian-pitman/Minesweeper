@@ -3,11 +3,14 @@ package minesweeper;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,10 +19,12 @@ import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -29,6 +34,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
@@ -37,17 +43,12 @@ import javafx.stage.Stage;
 public class MinesweeperView extends Application {
     
     private static final int[] BEGINNER_SETTINGS = { 8, 8, 5 };
-    private static final int[] INTERMEDIATE_SETTINGS = { 8, 8, 10 };
-    private static final int[] EXPERT_SETTINGS = { 8, 8, 20 };
+    
     private MenuBar menu;
     private Menu game;
     private MenuItem beginner;
-    private MenuItem intermediate;
-    private MenuItem expert;
-    private MenuItem custom;
     private Menu options;
     private MenuItem setMines;
-    private MenuItem gridSize;
     private Menu help;
     private MenuItem about;
     private MenuItem howTo;
@@ -69,6 +70,8 @@ public class MinesweeperView extends Application {
     private long timeElapsed;
     private Timer timer;
     
+    private boolean cheatMode = true;
+    
     private final Image blank = new Image("images\\blank.gif");
     private final Image flag = new Image("images\\bomb_flagged.gif");
     private final Image bomb_death = new Image("images\\bomb_death.gif");
@@ -86,18 +89,14 @@ public class MinesweeperView extends Application {
         exit = new MenuItem("Exit");
         
         beginner = new MenuItem("Start Beginner Game");
-        intermediate = new MenuItem("Start Intermediate Game");
-        expert = new MenuItem("Start Expert Game");
-        custom = new MenuItem("Start Custom Game");
         
         setMines = new MenuItem("Set Mines");
-        gridSize = new MenuItem("Set Grid Size");
         
         about = new MenuItem("About");
         howTo = new MenuItem("How To Play");
         
-        game.getItems().addAll(beginner, intermediate, expert, custom, exit);
-        options.getItems().addAll(setMines, gridSize);
+        game.getItems().addAll(beginner, exit);
+        options.getItems().addAll(setMines);
         help.getItems().addAll(about, howTo);
         menu.getMenus().addAll(game, options, help);
         
@@ -145,19 +144,16 @@ public class MinesweeperView extends Application {
             }
             
         });
-        intermediate.setOnAction(new EventHandler<ActionEvent>() {
+        
+        exit.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                newGame(INTERMEDIATE_SETTINGS[0], INTERMEDIATE_SETTINGS[1], INTERMEDIATE_SETTINGS[2]);
-            }
-        });
-        expert.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                newGame(EXPERT_SETTINGS[0], EXPERT_SETTINGS[1], EXPERT_SETTINGS[2]);
+                System.exit(0);
             }
             
         });
+        
+        setMines.setOnAction(new SetMinePrompter());
         
         about.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -175,13 +171,7 @@ public class MinesweeperView extends Application {
             
         });
         
-        exit.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                System.exit(0);
-            }
-            
-        });
+        
         
     }
     
@@ -192,6 +182,11 @@ public class MinesweeperView extends Application {
                 if (model.isFlagged(row, col)) {
                     temp = flag;
                 }
+                // Cheater mode
+                if (cheatMode && model.hasMine(row, col)) {
+                    temp = bomb_death;
+                }
+                
                 if (model.isShown(row, col)) {
                     temp = numbers[model.getNumber(row, col)];
                     if (model.hasMine(row, col)) {
@@ -232,16 +227,26 @@ public class MinesweeperView extends Application {
             try {
                 //System.out.println("( " + e.getX() + ", " + e.getY() + " )");
                 if (e.getButton().equals(MouseButton.PRIMARY)) {
-                    model.reveal(rowAt, colAt);
-                    if (first && model.hasMine(rowAt, colAt)) {
-                        model.regen(rowAt, colAt);
-                        first = false;
-                        return;
+                    if (model.isFlagged(rowAt, colAt)) {
+                        Alert alert = new Alert(AlertType.INFORMATION);
+                        alert.setTitle("Message");
+                        alert.setHeaderText("This tile is flagged!");
+                        alert.setContentText("Click 'OK' to continue");
+                        alert.showAndWait();
+                    } else {
+                        if (first && model.hasMine(rowAt, colAt)) {
+                            model.regen(rowAt, colAt);
+                            updateImageView();
+                            updateGridContainer();
+                            first = false;
+                            return;
+                        }
+                        model.reveal(rowAt, colAt);
+                        if (model.hasMine(rowAt, colAt)) {
+                            gameOver(rowAt, colAt);
+                        }
+                        //System.out.println("Left clicked (" + rowAt + ", " + colAt + ")");
                     }
-                    if (model.hasMine(rowAt, colAt)) {
-                        gameOver(rowAt, colAt);
-                    }
-                    //System.out.println("Left clicked (" + rowAt + ", " + colAt + ")");
                 }
                 if (e.getButton().equals(MouseButton.SECONDARY)) {
                     if (model.isFlagged(rowAt, colAt)) {
@@ -251,15 +256,23 @@ public class MinesweeperView extends Application {
                             minesRemaining++;
                         }
                     } else {
-                        flagsRemaining--;
-                        model.setFlagged(rowAt, colAt, true);
+                        if (flagsRemaining > 0) {
+                            flagsRemaining--;
+                            model.setFlagged(rowAt, colAt, true);
+                        } else {
+                            Alert alert = new Alert(AlertType.INFORMATION);
+                            alert.setTitle("Message");
+                            alert.setHeaderText("You're using too many flags!");
+                            alert.setContentText("Click 'OK' to continue");
+                            alert.showAndWait();
+                        }
                         if (model.hasMine(rowAt, colAt)) {
                             minesRemaining--;
                             if (minesRemaining == 0) {
                                 updateImageView();
                                 updateGridContainer();
                                 win();
-                                newGame(8, 8, 10);
+                                newGame(BEGINNER_SETTINGS[0], BEGINNER_SETTINGS[1], BEGINNER_SETTINGS[2]);
                             }
                         }
                     }
@@ -272,6 +285,63 @@ public class MinesweeperView extends Application {
                 System.out.println("Click inside of grid.");
             }
             
+        }
+        
+    }
+    
+    private class SetMinePrompter implements EventHandler<ActionEvent> {
+
+        @Override
+        public void handle(ActionEvent event) {
+            BorderPane bp = new BorderPane();
+            
+            VBox centerWrapper = new VBox();
+            centerWrapper.setSpacing(10);
+            centerWrapper.setAlignment(Pos.CENTER);
+            TextField minesPrompter = new TextField();
+            minesPrompter.setPrefSize(100, 20);
+            minesPrompter.setPromptText("Enter number of mines desired.");
+            
+            centerWrapper.getChildren().addAll(new Label("Number of Mines: "), minesPrompter);
+            bp.setCenter(centerWrapper);
+            
+            HBox bottomWrapper = new HBox();
+            bottomWrapper.setSpacing(10);
+            bottomWrapper.setAlignment(Pos.CENTER);
+            Button button = new Button("OK.");
+            
+            bottomWrapper.getChildren().addAll(button);
+            bp.setBottom(bottomWrapper);
+            
+            Scene scene = new Scene(bp, 250, 150, Color.web("#666970"));
+            Stage stage = new Stage();
+            stage.setScene(scene);
+            stage.setTitle("Set Mines");
+            stage.getIcons().add(new Image("/images/icons/logo.png"));
+            stage.show();
+            
+            button.setOnAction(new EventHandler<ActionEvent>() {
+                @Override
+                public void handle(ActionEvent event) {
+                    int numMines = Integer.parseInt(minesPrompter.getText());
+                    if (numMines <= 0 || numMines > 64) {
+                        Alert alert = new Alert(AlertType.INFORMATION);
+                        alert.setTitle("ERROR");
+                        alert.setHeaderText("Invalid number. Using beginner settings.");
+                        alert.setContentText("Click 'OK' to continue.");
+                        alert.showAndWait();
+                        newGame(8, 8, 5);
+                    } else {
+                        Alert alert = new Alert(AlertType.INFORMATION);
+                        alert.setTitle("Message");
+                        alert.setHeaderText("New game created with " + numMines + " mines.");
+                        alert.setContentText("Click 'OK' to continue.");
+                        alert.showAndWait();
+                        newGame(8, 8, numMines);
+                    }
+                    stage.close();
+                }
+            });
         }
         
     }
@@ -293,8 +363,10 @@ public class MinesweeperView extends Application {
     public void gameOver(int rowAt, int colAt) {
         stopTimer();
         model.setShown(rowAt, colAt, true);
+        cheatMode = true;
         updateImageView();
         updateGridContainer();
+        //cheatMode = false;
         gameOverAlert();
         newGame(8, 8, 10);
     }
@@ -309,6 +381,7 @@ public class MinesweeperView extends Application {
     }
     
     private void gameOverAlert() {
+        stopTimer();
         Alert alert = new Alert(AlertType.INFORMATION);
         alert.setTitle("Game Over!");
         alert.setHeaderText("You clicked on a mine.");
