@@ -3,14 +3,11 @@ package minesweeper;
 import java.net.URL;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.application.Application;
 import static javafx.application.Application.launch;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.event.EventType;
 import javafx.geometry.HPos;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -39,6 +36,29 @@ import javafx.scene.paint.Color;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
+
+/**
+ * Name: Ian Pitman
+ * Date: 3/26/17
+ * Period: 4
+ * 
+ * Time Spent: 12 hrs (TOTAL, including HW #1, 2, and 3) over ~1 week period
+ * 
+ * Reflection: This lab was a very interactive project. I loved that we were
+ * left to our own devices to figure out how to use HTML and CSS to make the
+ * help pages and that there were many in class work days given to work on this
+ * project. For this lab, I used GitHub to keep track of all my changes. It took
+ * me a while to figure out how to use it but I think that I'm going to be using
+ * it a lot from now on. I had several challenges that I faced when creating
+ * Minesweeper; most were simply control flow errors or stuff that I don't know
+ * how to do, like WebView. I solved the former by testing, reviewing, fixing,
+ * and repeating that process until everything was fixed. I solved the latter
+ * by googling my problems. I usually could find Stack Overflow solutions or
+ * online documentation to solve my problems. After completing this lab, I'm
+ * very excited to pursue future projects in similar scale to this. I am
+ * definitely looking at adding the "optional" features listed on SchoolLoop as
+ * well.
+ */
 
 public class MinesweeperView extends Application {
     
@@ -142,7 +162,6 @@ public class MinesweeperView extends Application {
             public void handle(ActionEvent event) {
                 newGame(BEGINNER_SETTINGS[0], BEGINNER_SETTINGS[1], BEGINNER_SETTINGS[2]);
             }
-            
         });
         
         exit.setOnAction(new EventHandler<ActionEvent>() {
@@ -150,7 +169,6 @@ public class MinesweeperView extends Application {
             public void handle(ActionEvent event) {
                 System.exit(0);
             }
-            
         });
         
         setMines.setOnAction(new SetMinePrompter());
@@ -160,7 +178,6 @@ public class MinesweeperView extends Application {
             public void handle(ActionEvent event) {
                 displayBrowser("/site/about.html", 250, 150, "About");
             }
-            
         });
         
         howTo.setOnAction(new EventHandler<ActionEvent>() {
@@ -168,10 +185,7 @@ public class MinesweeperView extends Application {
             public void handle(ActionEvent event) {
                 displayBrowser("/site/howto.html", 800, 600, "How To Play");
             }
-            
         });
-        
-        
         
     }
     
@@ -179,9 +193,6 @@ public class MinesweeperView extends Application {
         for (int row = 0; row < imageGrid.length; row++) {
             for (int col = 0; col < imageGrid[0].length; col++) {
                 Image temp = blank;
-                if (model.isFlagged(row, col)) {
-                    temp = flag;
-                }
                 // Cheater mode
                 if (cheatMode && model.hasMine(row, col)) {
                     temp = bomb_death;
@@ -192,6 +203,10 @@ public class MinesweeperView extends Application {
                     if (model.hasMine(row, col)) {
                         temp = bomb_death;
                     }
+                }
+                
+                if (model.isFlagged(row, col)) {
+                    temp = flag;
                 }
                 imageGrid[col][row] = new ImageView(temp);
             }
@@ -269,6 +284,7 @@ public class MinesweeperView extends Application {
                         if (model.hasMine(rowAt, colAt)) {
                             minesRemaining--;
                             if (minesRemaining == 0) {
+                                mines.setText("Mines Remaining: 0");
                                 updateImageView();
                                 updateGridContainer();
                                 win();
@@ -290,7 +306,6 @@ public class MinesweeperView extends Application {
     }
     
     private class SetMinePrompter implements EventHandler<ActionEvent> {
-
         @Override
         public void handle(ActionEvent event) {
             BorderPane bp = new BorderPane();
@@ -343,7 +358,6 @@ public class MinesweeperView extends Application {
                 }
             });
         }
-        
     }
     
     public void newGame(int row, int col, int numMines) {
