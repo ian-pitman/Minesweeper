@@ -149,12 +149,7 @@ public class MinesweeperModel implements MSModel {
     
     @Override
     public void reveal(int row, int col) {
-        System.out.println("Revealed (" + row + ", " + col + ")");
-        System.out.println(this.getNumRows());
-        System.out.println(this.getNumCols());
-        System.out.println(isShown(row, col));
-        if (row >= 0 && col >= 0 && row < this.getNumRows() && col < this.getNumCols() && !isShown(row, col) && !hasMine(row, col)) {
-            System.out.println("Revealed (" + row + ", " + col + ")");
+        if (row >= 0 && col >= 0 && row < this.getNumRows() && col < this.getNumCols() && !isShown(row, col)) {
             setShown(row, col, true);
             if (getNumber(row, col) == 0) {
                 reveal(row, col - 1);
@@ -166,9 +161,6 @@ public class MinesweeperModel implements MSModel {
                 reveal(row - 1, col);
                 reveal(row - 1, col - 1);
             }
-        }
-        if (hasMine(row, col)) {
-            setShown(row, col, true);
         }
     }
     
